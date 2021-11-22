@@ -260,7 +260,7 @@ def main(scr=None):
 
     scr.addstr(h // 3, w // 3, 'FINAL SCORE: ' + str(snake.score()))
     scr.refresh()
-    time.sleep(1)
+    time.sleep(2)
     scr.getch() # Wait till player presses a button before exiting fully
 
 if __name__ == "__main__":
