@@ -34,25 +34,25 @@ def yx(x, y=None):
 # -----------------------------------------------------------------------------
 
 class GameBoard:
-    def __init__(self, length=3, width=3):
-        assert length > 0
+    def __init__(self, width=3, height=3):
         assert width > 0
+        assert height > 0
 
-        self._length = length
+        self._height = height
         self._width = width
         self.reset() # create's the underlying board
 
         # The last player to make a move
         self._last_player_to_move = 1
 
-    def length(self):
-        return self._length
+    def height(self):
+        return self._height
 
     def width(self):
         return self._width
 
     def size(self):
-        return self._width * self._length
+        return self._width * self._height
 
     def board(self):
         return self._board
@@ -108,8 +108,13 @@ class GameBoard:
 
         x, y is 0 based from the top-left hand corner so the top-left corner is
             cell (0, 0)
+
+        raises AssertionError if you try to put an X/O on a space that is already
+            taken by an X/O
         """
         player = self.next_player() if player is None else player
+        assert self.get(x, y) == -1, \
+                "You cannot place your X or O in a cell that is already taken by an X or O"
         self.set(x, y, player)
         return self.won()
 
@@ -117,27 +122,27 @@ class GameBoard:
         """
         Returns 0 or 1 depending on which player won, -1 otherwise.
         """
-        width, length = self.width(), self.length()
+        width, height = self.width(), self.height()
 
         possibles = []
         # Gather rows
-        for i in range(length):
+        for i in range(height):
             start_idx = i * width
             possibles.append(self._board[start_idx: start_idx + width])
 
         # Gather cols
         for i in range(width):
-            possibles.append([self.get(i, j) for j in range(length)])
+            possibles.append([self.get(i, j) for j in range(height)])
 
         # Gather Diagonals (Not available if board is not square)
-        if width == length:
+        if width == height:
             #   Top-Left to Bottom-Right diagonal
             possibles.append( \
-                    [self.get(x, y) for x, y in zip(range(width), range(length))])
+                    [self.get(x, y) for x, y in zip(range(width), range(height))])
 
             #   Bottom-Left to Top-Right diagonal
             possibles.append( \
-                [self.get(x, y) for x, y in zip(range(width), range(length - 1, -1, -1))])
+                [self.get(x, y) for x, y in zip(range(width), range(height - 1, -1, -1))])
 
         # Actually check for the winner
         for possible in possibles:
@@ -161,7 +166,7 @@ class GameBoard:
         out = ""
 
         largest_width = len(str(self.width()))
-        largest_len = len(str(self.length()))
+        largest_len = len(str(self.height()))
         cell_width = 5
 
         # print top numbers
