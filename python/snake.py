@@ -41,6 +41,57 @@ def yx(x, y=None):
 # Helper Classes
 # -----------------------------------------------------------------------------
 
+class GameWindow:
+    """
+    A window to house the game state without having to worry about how the game
+        is actually displayed.
+    """
+    def __init__(self, width, height, snake, apples):
+        self.width = width
+        self.height = height
+        self.snake = snake
+        self.apples = apples
+
+    def new_apple(self):
+        return (randint(1, self.width - 2), randint(1, self.height - 2))
+
+    def advance(self, direction=None):
+        """
+        Advance Game State.
+
+        Returns True when the game is to continue, False if the game is over.
+        """
+        snake, apples = self.snake, self.apples
+
+        snake.advance(direction)
+
+        # Check if ate an Apple
+        idx_of_eaten_apples = []
+        for i, apple in enumerate(apples):
+            if snake.ate(apple):
+                idx_of_eaten_apples.append(i)
+
+                # Replace apple (after we remove it in a moment)
+                apples.append(self.new_apple())
+
+                if ((snake.apples_eaten() % 10) == 0):
+                    apples.append(self.new_apple()) # Add another apple as game progresses
+
+        num_idxs_eaten = 0
+        for idx in idx_of_eaten_apples:
+            idx -= num_idxs_eaten # Keep indexes correct
+            apples.pop(idx)
+
+        # Check if snake hit a wall
+        if snake.collision_with_boundaries(0, 0, self.width, self.height):
+            return False
+
+        # Check if snake hit itself
+        if snake.collision_with_self():
+            return False
+
+        return True
+
 class Snake:
     def __init__(self, start_point=(0, 0), start_direction=RIGHT):
         self.points = [start_point] # index 0 is head, index n - 1 is tail
@@ -149,19 +200,18 @@ def main(scr=None):
     apples = [(10, 10)]
     snake = Snake((1, 1), RIGHT)
 
+    game_win = GameWindow(main_w, main_h, snake, apples)
+
     # Make snake length 3
     for _ in range(2):
         snake._ate_apple = True
         snake.advance()
 
-    def new_apple():
-        return (randint(1, main_w - 2), randint(1, main_h - 2))
-
     def draw(win, status_win, apples, snake, snake_speedup):
         status_win.clear()
         out = " "
         out += f"Score: {snake.score()} | "
-        out += f"Snake Length: {snake.apples_eaten()} | "
+        out += f"Snake Length: {len(snake.points)} | "
         out += f"Apples: {len(apples)} | "
         out += f"Speedup: {snake_speedup}"
         status_win.addstr(0, 0, out)
@@ -192,39 +242,17 @@ def main(scr=None):
         key = win.getch()
 
         if key == curses.KEY_LEFT:
-            snake.advance(LEFT)
+            continue_game = game_win.advance(LEFT)
         elif key == curses.KEY_RIGHT:
-            snake.advance(RIGHT)
+            continue_game = game_win.advance(RIGHT)
         elif key == curses.KEY_UP:
-            snake.advance(UP)
+            continue_game = game_win.advance(UP)
         elif key == curses.KEY_DOWN:
-            snake.advance(DOWN)
+            continue_game = game_win.advance(DOWN)
         else:
-            snake.advance()
+            continue_game = game_win.advance()
 
-        # Check if ate an Apple
-        idx_of_eaten_apples = []
-        for i, apple in enumerate(apples):
-            if snake.ate(apple):
-                idx_of_eaten_apples.append(i)
-
-                # Replace apple (after we remove it in a moment)
-                apples.append(new_apple())
-
-                if ((snake.apples_eaten() % 10) == 0):
-                    apples.append(new_apple()) # Add another apple as game progresses
-
-        num_idxs_eaten = 0
-        for idx in idx_of_eaten_apples:
-            idx -= num_idxs_eaten # Keep indexes correct
-            apples.pop(idx)
-
-        # Check if snake hit a wall
-        if snake.collision_with_boundaries(0, 0, main_w, main_h):
-            break
-
-        # Check if snake hit itself
-        if snake.collision_with_self():
+        if not continue_game:
             break
 
         # Draw New Screen
