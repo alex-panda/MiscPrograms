@@ -1,6 +1,9 @@
 """
 This module allows you to play tic-tac-toe on the command line.
 
+WARNING: this module currently just has the game logic implemented and
+    no way to display it i.e. you cannot play it on the command line yet.
+
 NOTE: If you are trying to run it on windows, you will need to first run
     'pip install windows-curses' because curses does not work on windows
     otherwise, for some reason.
@@ -15,6 +18,10 @@ except:
     out += "have curses automatically installed on windows for some reason."
     print(out)
     raise
+
+import time
+import randint
+
 # =============================================================================
 # Helper Functions
 # -----------------------------------------------------------------------------
@@ -33,7 +40,7 @@ def yx(x, y=None):
 # Helper Classes
 # -----------------------------------------------------------------------------
 
-class GameBoard:
+class TicTacToeBoard:
     def __init__(self, width=3, height=3):
         assert width > 0
         assert height > 0
@@ -207,38 +214,59 @@ class GameBoard:
 # Main Function
 # -----------------------------------------------------------------------------
 
-def main():
-    pass
+def main(scr=None):
+    test()
+    return
+
+    if scr is None: curses.wrapper(main); return
+
+    h, w = scr.getmaxyx()
+
+    # Create status window
+    status_win = curses.newwin(1, w, 0, 0) # Window above window with game
+
+    # Create main window
+    main_h, main_w = h - 1, w
+    win = curses.newwin(main_h, main_w, 1, 0) # new window
+
+    # Create Game Board
+    game = TicTacToeBoard()
+
+
+
 
 def test():
     board_size = 3
     # Test Row Win
     for y in range(3):
-        board = GameBoard(board_size, board_size)
+        board = TicTacToeBoard(board_size, board_size)
         assert board.next_move(0, y, 1) == -1
         assert board.next_move(1, y, 1) == -1
         assert board.next_move(2, y, 1) == 1
 
     # Test Col Win
     for x in range(3):
-        board = GameBoard(board_size, board_size)
+        board = TicTacToeBoard(board_size, board_size)
         assert board.next_move(x, 0, 1) == -1
         assert board.next_move(x, 1, 1) == -1
         assert board.next_move(x, 2, 1) == 1
 
     # Test Top Left to Bottom Right diag win
-    board = GameBoard(board_size, board_size)
+    board = TicTacToeBoard(board_size, board_size)
     assert board.next_move(0, 0, 1) == -1
     assert board.next_move(1, 1, 1) == -1
     assert board.next_move(2, 2, 1) == 1
 
     # Test Bottom Left to Top Right diag win
-    board = GameBoard(board_size, board_size)
+    board = TicTacToeBoard(board_size, board_size)
     assert board.next_move(2, 0, 1) == -1
     assert board.next_move(1, 1, 1) == -1
     assert board.next_move(0, 2, 1) == 1
 
 if __name__ == "__main__":
-    #main()
-    test()
+    main()
+    #test()
     pass
+
+
+
